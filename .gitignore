@@ -1,0 +1,6 @@
+# ไฟล์และโฟลเดอร์ที่ไม่ต้องการเอาขึ้น GitHub
+.venv/
+__pycache__/
+logs/
+data/
+.env
