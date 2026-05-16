@@ -1,66 +1,62 @@
-# Online Retail Analytics Pipeline
+# 🎬 Netflix Analytics Pipeline
 
-This project implements a complete ETL (Extract, Transform, Load) pipeline to process online retail data and provide actionable business insights through automated reports and an executive dashboard.
+โปรเจกต์นี้เป็นการจัดทำ ETL (Extract, Transform, Load) Pipeline แบบครบวงจร เพื่อประมวลผลข้อมูลภาพยนตร์และซีรีส์ของ Netflix และสรุปผลออกมาเป็นข้อมูลเชิงลึก (Business Insights) ผ่านระบบสร้างรายงานอัตโนมัติและ Dashboard สำหรับการนำไปใช้งานต่อ
 
-## 🚀 Overview
+## 🚀 Overview (ภาพรวมของโปรเจกต์)
 
-The pipeline processes the **Online Retail II** dataset, transforming raw transaction logs into high-level business metrics. It uses **Apache Airflow** for orchestration and **Streamlit** for the final visualization.
+ระบบจะประมวลผลชุดข้อมูล **Netflix Titles** โดยแปลงจากข้อมูลดิบให้กลายเป็นสถิติระดับสูงที่พร้อมใช้งาน มีการใช้ **Apache Airflow** ในการจัดการและควบคุมลำดับงาน (Orchestration) และแสดงผลลัพธ์การวิเคราะห์ผ่าน **Streamlit**
 
-### 🛠️ Tech Stack
-- **Orchestration**: Apache Airflow 2.7.3
+### 🛠️ Tech Stack (เทคโนโลยีที่ใช้)
+- **Orchestration**: Apache Airflow
 - **Data Processing**: Python, Pandas, PyArrow (Parquet)
-- **Database**: PostgreSQL (Airflow Metadata)
-- **Visualization**: Streamlit
+- **Database**: PostgreSQL (สำหรับ Airflow Metadata)
+- **Visualization**: Streamlit, Plotly
 - **Infrastructure**: Docker & Docker Compose
 
-## 🏗️ Pipeline Architecture
+## 🏗️ Pipeline Architecture (สถาปัตยกรรมข้อมูล)
 
-The pipeline is structured as a directed acyclic graph (DAG) in Airflow:
+การทำงานของ Pipeline ถูกจัดโครงสร้างแบบ Directed Acyclic Graph (DAG) ภายในระบบ Airflow ดังนี้:
 
-### 1. Extract
-- Reads raw retail data from `data/raw/online_retail_II.csv`.
-- Handles encoding issues (UTF-8/ISO-8859-1).
-- Saves data as Parquet for optimized downstream processing.
+### 1. Extract (การสกัดข้อมูล)
+- อ่านข้อมูลดิบจากไฟล์ `data/raw/netflix_titles.csv`
+- ทำการแยกสายข้อมูล (Filter) ออกเป็น 2 กลุ่ม คือ 'ภาพยนตร์' (Movies) และ 'ซีรีส์' (TV Shows)
+- บันทึกข้อมูลชั่วคราวในรูปแบบ Parquet เพื่อเพิ่มประสิทธิภาพในการประมวลผลขั้นต่อไป
 
-### 2. Transform
-- **Cleaning**: Removes duplicates, cancelled orders (Invoice 'C'), and invalid records (negative quantity/price).
-- **Feature Engineering**:
-  - Calculates total revenue.
-  - Extracts time-based features (hour, weekday, quarter).
-  - Categorizes revenue sizes.
-- **Validation**: Performs quality checks on row counts, null values, and date ranges to ensure data integrity before loading.
+### 2. Transform (การแปลงและทำความสะอาดข้อมูล)
+- **Cleaning**: จัดการค่าว่าง (Null) ในคอลัมน์ผู้กำกับ (Director) และประเทศ (Country) โดยแทนที่ด้วยคำว่า 'Unknown'
+- **Feature Engineering**: แปลงข้อมูลคอลัมน์ระยะเวลา (Duration) จากรูปแบบข้อความ (String) ให้เป็นตัวเลข (Float) เพื่อให้สามารถนำไปคำนวณทางสถิติได้
+- บันทึกไฟล์ที่ผ่านการทำความสะอาดแล้วเป็นฟอร์แมต Parquet
 
-### 3. Load
-Generates four key business artifacts:
-- **Product Report**: Analysis of top-selling products and revenue by item.
-- **Customer Report**: RFM (Recency, Frequency, Monetary) analysis and customer segmentation (e.g., Champions, Loyal, At Risk).
-- **Revenue Report**: Revenue trends by day, month, and country.
-- **Executive Dashboard**: A high-level summary CSV containing critical KPIs.
+### 3. Merge & Analyze (การผสานข้อมูลและวิเคราะห์ผล)
+ระบบจะสร้างไฟล์รายงานทางธุรกิจที่สำคัญ ได้แก่:
+- **Master Dataset**: นำข้อมูลภาพยนตร์และซีรีส์ที่คลีนแล้วมารวมกัน (Concatenate) เป็นไฟล์ `netflix_master.parquet` ชุดเดียว
+- **Yearly Trend Report**: วิเคราะห์และนับจำนวนคอนเทนต์ที่ถูกปล่อยออกมาในแต่ละปี (ตั้งแต่ปี 2010 เป็นต้นมา)
+- **Top Countries Report**: สกัดชื่อประเทศหลัก (Primary Country) และจัดอันดับ 10 ประเทศที่เป็นผู้ผลิตคอนเทนต์สูงสุดลง Netflix
 
-### 4. Visualization
-- A **Streamlit** application (`data/output/app_exec.py`) reads the executive summary to present a "Daily Snapshot" for stakeholders.
+### 4. Visualization (การแสดงผลข้อมูล)
+- มีการสร้างแอปพลิเคชัน **Streamlit** (`app.py`) เพื่อใช้อ่านไฟล์สรุปผล (Executive Summary) และแสดงผลเป็นหน้า Dashboard แบบอินเทอร์แอกทีฟให้กับผู้ใช้งาน
 
-## 🚦 Getting Started
+## 🚦 Getting Started (วิธีติดตั้งและใช้งาน)
 
-### Prerequisites
-- Docker and Docker Compose installed.
+### Prerequisites (สิ่งที่ต้องมี)
+- ติดตั้ง Docker และ Docker Compose ในเครื่อง
 
-### Installation & Execution
-1. **Start the infrastructure**:
+### Installation & Execution (ขั้นตอนการรันโปรเจกต์)
+1. **Start the infrastructure** (รันระบบฐานราก):
    ```bash
    docker-compose up -d
-   ```
-2. **Access Airflow**:
-   - Open `http://localhost:8080` in your browser.
-   - Login with: `admin` / `admin`.
-3. **Run the Pipeline**:
-   - Unpause the `retail_analytics_pipeline` DAG and trigger it manually.
-4. **Launch the Dashboard**:
-   - Once the pipeline completes, run the Streamlit app:
-     ```bash
-     streamlit run data/output/app_exec.py
-     ```
 
+**Access Airflow** (เข้าสู่ระบบจัดการ Pipeline):
+- เปิดเบราว์เซอร์และเข้าไปที่ `http://localhost:8080`
+- ล็อกอินด้วย Username: `airflow` / Password: `airflow` (หรือตามที่ตั้งค่าไว้)
+
+**Run the Pipeline** (สั่งรันข้อมูล):
+- ทำการ Unpause ตัว DAG ที่ชื่อ `netflix_advanced_pipeline` และกด Trigger เพื่อเริ่มการทำงาน
+
+**Launch the Dashboard** (เปิดหน้าแสดงผล):
+- เมื่อ Pipeline ทำงานเสร็จสิ้น ให้รันแอปพลิเคชัน Streamlit:
+  ```bash
+  streamlit run app.py
 ## 📁 Project Structure
 - `dags/`: Airflow DAG definitions.
 - `data/raw/`: Source CSV files.
